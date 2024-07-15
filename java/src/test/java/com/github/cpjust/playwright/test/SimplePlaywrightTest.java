@@ -13,49 +13,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.cpjust.playwrite.test;
+package com.github.cpjust.playwright.test;
 
 import com.github.cpjust.constants.EchoFirCompressionShortKeys;
+import com.github.cpjust.playwright.PlaywrightTestBase;
 import com.github.cpjust.util.PropertyReader;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.microsoft.playwright.Browser;
-import com.microsoft.playwright.BrowserContext;
-import com.microsoft.playwright.BrowserType;
 import com.microsoft.playwright.Locator;
-import com.microsoft.playwright.Page;
-import com.microsoft.playwright.Playwright;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Assertions;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
-import java.util.Collections;
 import java.util.Properties;
 
 @Slf4j
-public class SimplePlaywrightTest {
-    private Playwright playwright;
-    private Browser browser;
-    private BrowserContext browserContext;
-    private Page page;
+public class SimplePlaywrightTest extends PlaywrightTestBase {
     private Properties properties;
 
     @BeforeClass(alwaysRun = true)
     public void beforeClass() throws IOException {
         PropertyReader propertyReader = new PropertyReader();
         properties = propertyReader.getPropertiesFromResources("locators/magento.softwaretestingboard.com/EchoFirCompressionShort.properties");
-        playwright = Playwright.create();
-        BrowserType.LaunchOptions launchOptions = new BrowserType.LaunchOptions();
-        launchOptions.setHeadless(false);
-        launchOptions.setArgs(Collections.singletonList("--start-maximized"));
-        browser = playwright.chromium().launch(launchOptions);
     }
 
     @BeforeMethod
@@ -70,32 +55,6 @@ public class SimplePlaywrightTest {
 
         // Throttle the network speed.
         setNetworkConditions(10000, -1, 5000, false);
-    }
-
-    @AfterMethod
-    public void afterMethod() {
-        if (page != null) {
-            page.close();
-            page = null;
-        }
-
-        if (browserContext != null) {
-            browserContext.close();
-            browserContext = null;
-        }
-    }
-
-    @AfterClass(alwaysRun = true)
-    public void afterClass() {
-        if (browser != null) {
-            browser.close();
-            browser = null;
-        }
-
-        if (playwright != null) {
-            playwright.close();
-            playwright = null;
-        }
     }
 
     @Test
