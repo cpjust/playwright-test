@@ -16,21 +16,14 @@
 package com.github.cpjust.selenium.test;
 
 import com.github.cpjust.constants.EchoFirCompressionShortKeys;
+import com.github.cpjust.selenium.SeleniumTestBase;
 import com.github.cpjust.util.PropertyReader;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.output.NullOutputStream;
 import org.junit.jupiter.api.Assertions;
 import org.openqa.selenium.By;
-import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.chrome.ChromeDriverService;
-import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.chromium.ChromiumNetworkConditions;
-import org.openqa.selenium.devtools.DevTools;
-import org.openqa.selenium.remote.service.DriverService;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -40,65 +33,23 @@ import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
-import java.util.logging.Level;
 
 @Slf4j
-public class SimpleSeleniumTest {
+public class SimpleSeleniumTest extends SeleniumTestBase {
     private Properties properties;
-    private WebDriver driver;
-    private ChromeOptions chromeOptions;
-    private ChromeDriverService chromeDriverService;
-    private DevTools devTools;
 
     @BeforeClass
     public void beforeClass() throws IOException {
         PropertyReader propertyReader = new PropertyReader();
         properties = propertyReader.getPropertiesFromResources("locators/magento.softwaretestingboard.com/EchoFirCompressionShort.properties");
-
-        disableLogging();
-
-        chromeOptions = new ChromeOptions();
-//        chromeOptions.addArguments("--no-sandbox");
-//        chromeOptions.addArguments("--headless");
-        chromeOptions.addArguments("--start-maximized");
-        chromeOptions.addArguments("disable-gpu");
-        chromeOptions.addArguments("--remote-allow-origins=*"); // This fixes a WebSocket error: https://stackoverflow.com/questions/75680149/unable-to-establish-websocket-connection
-//        chromeOptions.addArguments("--browserVersion=115");
-
-        // Disables the useless "ChromeDriver was started successfully" messages.
-        DriverService.Builder<ChromeDriverService, ChromeDriverService.Builder> serviceBuilder = new ChromeDriverService.Builder();
-        chromeDriverService = serviceBuilder.build();
-        chromeDriverService.sendOutputTo(NullOutputStream.NULL_OUTPUT_STREAM);
     }
 
     @BeforeMethod
     public void beforeMethod() {
-        driver = new ChromeDriver(chromeDriverService, chromeOptions);
-        driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
         driver.get(properties.getProperty(EchoFirCompressionShortKeys.URL));
 
         // Throttle the network speed.
         setNetworkConditions(10000, null, Duration.ofSeconds(5), null);
-    }
-
-    @AfterMethod
-    public void afterMethod() {
-        if (devTools != null) {
-            devTools.close();
-            devTools = null;
-        }
-
-        if (driver != null) {
-            driver.close();
-        }
-    }
-
-    @AfterClass
-    public void afterClass() {
-        if (driver != null) {
-            driver.quit();
-            driver = null;
-        }
     }
 
     @Test
@@ -158,15 +109,6 @@ public class SimpleSeleniumTest {
         final String expectedMessage = "You added Echo Fit Compression Short to your shopping cart.";
         Assertions.assertEquals(expectedMessage, successMessage, "Wrong success message!");
         Assertions.assertEquals("1", cartItems, "Wrong cart size!");
-    }
-
-    /**
-     * Gets rid of useless Selenium console messages.
-     * See: https://stackoverflow.com/questions/52975287/selenium-chromedriver-disable-logging-or-redirect-it-java
-     */
-    private void disableLogging() {
-        System.setProperty("webdriver.chrome.silentOutput", "true");
-        java.util.logging.Logger.getLogger("org.openqa.selenium").setLevel(Level.OFF);
     }
 
     /**
